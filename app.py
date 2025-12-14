@@ -128,11 +128,36 @@ def transcribe_audio(audio_bytes):
         return None, "Speech recognition not available"
 
     try:
+        import wave
+        import tempfile
+        import os
+
         recognizer = sr.Recognizer()
-        # Convert bytes to AudioFile
-        audio_file = io.BytesIO(audio_bytes)
-        with sr.AudioFile(audio_file) as source:
-            audio_data = recognizer.record(source)
+
+        # Try to convert audio using pydub if available
+        try:
+            from pydub import AudioSegment
+
+            # Load audio from bytes
+            audio_segment = AudioSegment.from_file(io.BytesIO(audio_bytes))
+
+            # Export as WAV to a temporary file
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_file:
+                tmp_path = tmp_file.name
+                audio_segment.export(tmp_path, format="wav")
+
+            # Use the temporary WAV file for recognition
+            with sr.AudioFile(tmp_path) as source:
+                audio_data = recognizer.record(source)
+
+            # Clean up temp file
+            os.unlink(tmp_path)
+
+        except ImportError:
+            # Fallback: try direct reading (may not work with all formats)
+            audio_file = io.BytesIO(audio_bytes)
+            with sr.AudioFile(audio_file) as source:
+                audio_data = recognizer.record(source)
 
         # Use Google's free speech recognition
         text = recognizer.recognize_google(audio_data)
