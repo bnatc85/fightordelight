@@ -318,6 +318,21 @@ st.markdown(f"""
         padding: 1rem;
         margin-bottom: 1rem;
     }}
+    /* Audio recorder styling */
+    iframe[title="audio_recorder_streamlit.audio_recorder"] {{
+        background: transparent !important;
+        border: none !important;
+    }}
+    .stAudio {{
+        background: rgba(0, 0, 0, 0.2) !important;
+        border-radius: 12px !important;
+        padding: 0.5rem !important;
+    }}
+    .element-container:has(iframe[title="audio_recorder_streamlit.audio_recorder"]) {{
+        display: flex !important;
+        justify-content: center !important;
+        background: transparent !important;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -384,15 +399,21 @@ else:
 
 # Voice input section
 if input_mode == "Voice" and voice_available:
-    st.markdown("<p style='color: rgba(196, 181, 253, 0.7); font-size: 0.875rem;'>Click the microphone to record, then click again to stop</p>", unsafe_allow_html=True)
+    st.markdown("""
+    <div style="text-align: center; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 16px; border: 1px solid rgba(139, 92, 246, 0.2); margin-bottom: 1rem;">
+        <p style="color: rgba(196, 181, 253, 0.8); font-size: 0.875rem; margin-bottom: 0.5rem;">Click the microphone to record</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    audio_bytes = audio_recorder(
-        text="",
-        recording_color="#ec4899",
-        neutral_color="#8b5cf6",
-        icon_size="3x",
-        pause_threshold=2.0
-    )
+    col1, col2, col3 = st.columns([1, 1, 1])
+    with col2:
+        audio_bytes = audio_recorder(
+            text="",
+            recording_color="#ec4899",
+            neutral_color="#8b5cf6",
+            icon_size="2x",
+            pause_threshold=2.0
+        )
 
     if audio_bytes:
         st.audio(audio_bytes, format="audio/wav")
