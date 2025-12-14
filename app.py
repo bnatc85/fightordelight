@@ -1,6 +1,21 @@
 import streamlit as st
 import json
 from datetime import datetime
+import io
+
+# Try to import audio recorder
+try:
+    from audio_recorder_streamlit import audio_recorder
+    AUDIO_AVAILABLE = True
+except ImportError:
+    AUDIO_AVAILABLE = False
+
+# Try to import speech recognition
+try:
+    import speech_recognition as sr
+    SPEECH_RECOGNITION_AVAILABLE = True
+except ImportError:
+    SPEECH_RECOGNITION_AVAILABLE = False
 
 # Page config
 st.set_page_config(
@@ -105,6 +120,29 @@ INTENSIFIERS = {
 
 NEGATIONS = ['not', "n't", 'never', 'no', 'none', 'nobody', 'nothing',
              'neither', 'nowhere', 'hardly', 'barely', 'scarcely']
+
+
+def transcribe_audio(audio_bytes):
+    """Transcribe audio bytes to text using speech recognition."""
+    if not SPEECH_RECOGNITION_AVAILABLE:
+        return None, "Speech recognition not available"
+
+    try:
+        recognizer = sr.Recognizer()
+        # Convert bytes to AudioFile
+        audio_file = io.BytesIO(audio_bytes)
+        with sr.AudioFile(audio_file) as source:
+            audio_data = recognizer.record(source)
+
+        # Use Google's free speech recognition
+        text = recognizer.recognize_google(audio_data)
+        return text, None
+    except sr.UnknownValueError:
+        return None, "Could not understand audio. Please try again."
+    except sr.RequestError as e:
+        return None, f"Speech recognition error: {e}"
+    except Exception as e:
+        return None, f"Error processing audio: {e}"
 
 
 def analyze_sentiment(text):
@@ -331,6 +369,42 @@ with st.expander("Why Does Positive Communication Matter?"):
 
 # Main input
 st.markdown("### How was your day?")
+
+# Input mode toggle
+voice_available = AUDIO_AVAILABLE and SPEECH_RECOGNITION_AVAILABLE
+if voice_available:
+    input_mode = st.radio(
+        "Choose input method",
+        ["Type", "Voice"],
+        horizontal=True,
+        label_visibility="collapsed"
+    )
+else:
+    input_mode = "Type"
+
+# Voice input section
+if input_mode == "Voice" and voice_available:
+    st.markdown("<p style='color: rgba(196, 181, 253, 0.7); font-size: 0.875rem;'>Click the microphone to record, then click again to stop</p>", unsafe_allow_html=True)
+
+    audio_bytes = audio_recorder(
+        text="",
+        recording_color="#ec4899",
+        neutral_color="#8b5cf6",
+        icon_size="3x",
+        pause_threshold=2.0
+    )
+
+    if audio_bytes:
+        st.audio(audio_bytes, format="audio/wav")
+        with st.spinner("Transcribing..."):
+            transcribed_text, error = transcribe_audio(audio_bytes)
+            if transcribed_text:
+                st.session_state.day_description = transcribed_text
+                st.success("Transcription complete!")
+            elif error:
+                st.error(error)
+
+# Text input
 day_text = st.text_area(
     "Tell me about your day",
     value=st.session_state.day_description,
