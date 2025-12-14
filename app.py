@@ -5,7 +5,7 @@ import io
 
 # Try to import audio recorder
 try:
-    from audio_recorder_streamlit import audio_recorder
+    from streamlit_mic_recorder import mic_recorder
     AUDIO_AVAILABLE = True
 except ImportError:
     AUDIO_AVAILABLE = False
@@ -318,20 +318,11 @@ st.markdown(f"""
         padding: 1rem;
         margin-bottom: 1rem;
     }}
-    /* Audio recorder styling */
-    iframe[title="audio_recorder_streamlit.audio_recorder"] {{
-        background: transparent !important;
-        border: none !important;
-    }}
+    /* Audio styling */
     .stAudio {{
         background: rgba(0, 0, 0, 0.2) !important;
         border-radius: 12px !important;
         padding: 0.5rem !important;
-    }}
-    .element-container:has(iframe[title="audio_recorder_streamlit.audio_recorder"]) {{
-        display: flex !important;
-        justify-content: center !important;
-        background: transparent !important;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -399,26 +390,20 @@ else:
 
 # Voice input section
 if input_mode == "Voice" and voice_available:
-    st.markdown("""
-    <div style="text-align: center; padding: 1.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 16px; border: 1px solid rgba(139, 92, 246, 0.2); margin-bottom: 1rem;">
-        <p style="color: rgba(196, 181, 253, 0.8); font-size: 0.875rem; margin-bottom: 0.5rem;">Click the microphone to record</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<p style='color: rgba(196, 181, 253, 0.7); text-align: center;'>Press Start, speak, then press Stop</p>", unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([1, 1, 1])
-    with col2:
-        audio_bytes = audio_recorder(
-            text="",
-            recording_color="#ec4899",
-            neutral_color="#8b5cf6",
-            icon_size="2x",
-            pause_threshold=2.0
-        )
+    audio = mic_recorder(
+        start_prompt="🎤 Start Recording",
+        stop_prompt="⏹️ Stop Recording",
+        just_once=False,
+        use_container_width=True,
+        key="voice_recorder"
+    )
 
-    if audio_bytes:
-        st.audio(audio_bytes, format="audio/wav")
+    if audio:
+        st.audio(audio['bytes'], format="audio/wav")
         with st.spinner("Transcribing..."):
-            transcribed_text, error = transcribe_audio(audio_bytes)
+            transcribed_text, error = transcribe_audio(audio['bytes'])
             if transcribed_text:
                 st.session_state.day_description = transcribed_text
                 st.success("Transcription complete!")
