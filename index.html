@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fight or Delight</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @keyframes pulse-ring {
+      0% { transform: scale(0.8); opacity: 0.8; }
+      50% { transform: scale(1.2); opacity: 0.4; }
+      100% { transform: scale(0.8); opacity: 0.8; }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+    @keyframes bounce-in {
+      0% { transform: scale(0); opacity: 0; }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes wave {
+      0%, 100% { transform: scaleY(1); }
+      50% { transform: scaleY(2); }
+    }
+    .pulse-ring { animation: pulse-ring 1.5s ease-in-out infinite; }
+    .float { animation: float 3s ease-in-out infinite; }
+    .bounce-in { animation: bounce-in 0.5s ease-out forwards; }
+    .wave-bar { animation: wave 0.5s ease-in-out infinite; }
+    .wave-bar:nth-child(2) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.3s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.4s; }
+  </style>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Icon components using inline SVGs
+    const MicIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+        <line x1="12" x2="12" y1="19" y2="22"/>
+      </svg>
+    );
+
+    const MicOffIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <line x1="2" x2="22" y1="2" y2="22"/>
+        <path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/>
+        <path d="M5 10v2a7 7 0 0 0 12 5"/>
+        <path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/>
+        <path d="M9 9v3a3 3 0 0 0 5.12 2.12"/>
+        <line x1="12" x2="12" y1="19" y2="22"/>
+      </svg>
+    );
+
+    const KeyboardIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="20" height="16" x="2" y="4" rx="2" ry="2"/>
+        <path d="M6 8h.001"/>
+        <path d="M10 8h.001"/>
+        <path d="M14 8h.001"/>
+        <path d="M18 8h.001"/>
+        <path d="M8 12h.001"/>
+        <path d="M12 12h.001"/>
+        <path d="M16 12h.001"/>
+        <path d="M7 16h10"/>
+      </svg>
+    );
+
+    const SparklesIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
+        <path d="M5 3v4"/>
+        <path d="M19 17v4"/>
+        <path d="M3 5h4"/>
+        <path d="M17 19h4"/>
+      </svg>
+    );
+
+    const FrownIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M16 16s-1.5-2-4-2-4 2-4 2"/>
+        <line x1="9" x2="9.01" y1="9" y2="9"/>
+        <line x1="15" x2="15.01" y1="9" y2="9"/>
+      </svg>
+    );
+
+    const PartyIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M5.8 11.3 2 22l10.7-3.79"/>
+        <path d="M4 3h.01"/>
+        <path d="M22 8h.01"/>
+        <path d="M15 2h.01"/>
+        <path d="M22 20h.01"/>
+        <path d="m22 2-2.24.75a2.9 2.9 0 0 0-1.96 3.12v0c.1.86-.57 1.63-1.45 1.63h-.38c-.86 0-1.6.6-1.76 1.44L14 10"/>
+        <path d="m22 13-.82-.33c-.86-.34-1.82.2-1.98 1.11v0c-.11.7-.72 1.22-1.43 1.22H17"/>
+        <path d="m11 2 .33.82c.34.86-.2 1.82-1.11 1.98v0C9.52 4.9 9 5.52 9 6.23V7"/>
+        <path d="M11 13c1.93 1.93 2.83 4.17 2 5-.83.83-3.07-.07-5-2-1.93-1.93-2.83-4.17-2-5 .83-.83 3.07.07 5 2Z"/>
+      </svg>
+    );
+
+    const RotateCcwIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+        <path d="M3 3v5h5"/>
+      </svg>
+    );
+
+    const VolumeIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+      </svg>
+    );
+
+    const ChevronDownIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m6 9 6 6 6-6"/>
+      </svg>
+    );
+
+    const ChevronUpIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="m18 15-6-6-6 6"/>
+      </svg>
+    );
+
+    const InfoIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="12" cy="12" r="10"/>
+        <path d="M12 16v-4"/>
+        <path d="M12 8h.01"/>
+      </svg>
+    );
+
+    const BookIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+      </svg>
+    );
+
+    const SaveIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+        <polyline points="17 21 17 13 7 13 7 21"/>
+        <polyline points="7 3 7 8 15 8"/>
+      </svg>
+    );
+
+    const TrashIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      </svg>
+    );
+
+    const CalendarIcon = ({ className }) => (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="18" height="18" x="3" y="4" rx="2" ry="2"/>
+        <line x1="16" x2="16" y1="2" y2="6"/>
+        <line x1="8" x2="8" y1="2" y2="6"/>
+        <line x1="3" x2="21" y1="10" y2="10"/>
+      </svg>
+    );
+
+    // VADER-style sentiment analysis
+    const sentimentAnalyzer = {
+      positive: {
+        // Basic positive
+        'good': 1.9, 'great': 3.1, 'excellent': 3.4, 'amazing': 3.5, 'wonderful': 3.3,
+        'fantastic': 3.4, 'awesome': 3.1, 'love': 3.2, 'loved': 3.2, 'loving': 3.0,
+        'happy': 2.8, 'joy': 2.9, 'joyful': 3.0, 'delightful': 3.2, 'delight': 3.1,
+        'pleasant': 2.4, 'pleased': 2.5, 'exciting': 2.8, 'excited': 2.9,
+        'beautiful': 2.9, 'perfect': 3.0, 'best': 2.8, 'brilliant': 3.2,
+        'fun': 2.5, 'funny': 2.4, 'laugh': 2.3, 'laughed': 2.3, 'smile': 2.1, 'smiled': 2.1,
+        'nice': 1.8, 'cool': 1.8, 'pretty': 2.0, 'peaceful': 2.4, 'calm': 2.0,
+        'success': 2.6, 'successful': 2.7, 'win': 2.5, 'won': 2.5, 'winning': 2.6,
+        'celebrate': 2.7, 'celebration': 2.7, 'party': 2.0, 'grateful': 2.8,
+        'thankful': 2.6, 'thanks': 1.9, 'thank': 1.8, 'blessed': 2.7, 'lucky': 2.4,
+        'hope': 2.0, 'hopeful': 2.3, 'optimistic': 2.5, 'positive': 2.2,
+        'enjoy': 2.4, 'enjoyed': 2.5, 'enjoying': 2.4, 'relaxed': 2.2, 'relaxing': 2.3,
+        'proud': 2.5, 'accomplished': 2.7, 'achievement': 2.6, 'productive': 2.3,
+        'helpful': 2.2, 'kind': 2.3, 'kindness': 2.5, 'sweet': 2.1, 'warm': 1.9,
+        'incredible': 3.2, 'outstanding': 3.1, 'remarkable': 2.9, 'superb': 3.0,
+        'terrific': 2.9, 'fabulous': 3.0, 'marvelous': 3.0, 'splendid': 2.8,
+        // Emotions & feelings
+        'thrilled': 3.2, 'ecstatic': 3.5, 'elated': 3.3, 'overjoyed': 3.4, 'blissful': 3.2,
+        'cheerful': 2.6, 'content': 2.3, 'satisfied': 2.4, 'fulfilling': 2.7, 'fulfilled': 2.8,
+        'enthusiastic': 2.8, 'eager': 2.3, 'passionate': 2.7, 'inspired': 2.8, 'inspiring': 2.9,
+        'motivated': 2.5, 'energized': 2.4, 'refreshed': 2.3, 'rejuvenated': 2.6, 'alive': 2.2,
+        'comfortable': 2.1, 'cozy': 2.0, 'secure': 2.2, 'safe': 2.0, 'confident': 2.5,
+        'courageous': 2.6, 'brave': 2.5, 'bold': 2.3, 'determined': 2.4, 'strong': 2.2,
+        // Social & relationships
+        'friendly': 2.3, 'caring': 2.5, 'compassionate': 2.7, 'supportive': 2.5, 'generous': 2.6,
+        'thoughtful': 2.4, 'considerate': 2.3, 'respectful': 2.2, 'honest': 2.3, 'loyal': 2.5,
+        'trustworthy': 2.5, 'genuine': 2.4, 'sincere': 2.4, 'authentic': 2.3, 'real': 1.8,
+        'connected': 2.2, 'belonged': 2.3, 'accepted': 2.4, 'welcomed': 2.5, 'included': 2.3,
+        'appreciated': 2.6, 'valued': 2.5, 'respected': 2.4, 'admired': 2.5, 'adored': 3.0,
+        'cherished': 2.8, 'treasured': 2.7, 'special': 2.4, 'important': 2.2, 'worthy': 2.3,
+        // Actions & experiences
+        'achieve': 2.5, 'achieved': 2.6, 'succeeding': 2.6, 'progressing': 2.3, 'improving': 2.4,
+        'growing': 2.2, 'learning': 2.1, 'discovered': 2.4, 'exploring': 2.2, 'adventure': 2.5,
+        'creating': 2.3, 'created': 2.4, 'building': 2.2, 'making': 1.8, 'finishing': 2.3,
+        'completed': 2.4, 'finished': 2.2, 'done': 1.6, 'solved': 2.4, 'fixed': 2.2,
+        'helped': 2.3, 'helping': 2.2, 'giving': 2.1, 'sharing': 2.2, 'contributing': 2.3,
+        // Descriptive positives
+        'bright': 2.1, 'shining': 2.3, 'glowing': 2.4, 'radiant': 2.6, 'vibrant': 2.5,
+        'colorful': 2.0, 'lively': 2.3, 'energetic': 2.4, 'dynamic': 2.2, 'exciting': 2.6,
+        'interesting': 2.1, 'fascinating': 2.6, 'captivating': 2.7, 'engaging': 2.4, 'intriguing': 2.3,
+        'impressive': 2.6, 'stunning': 2.8, 'gorgeous': 2.9, 'lovely': 2.6, 'charming': 2.4,
+        'elegant': 2.4, 'graceful': 2.5, 'delicate': 2.0, 'exquisite': 2.8, 'magnificent': 3.0,
+        // Casual/slang positives
+        'yay': 2.5, 'woohoo': 2.8, 'yeah': 1.8, 'yes': 1.6, 'definitely': 1.8,
+        'absolutely': 2.0, 'totally': 1.7, 'exactly': 1.6, 'right': 1.4, 'agreed': 1.8,
+        'dope': 2.4, 'sick': 2.2, 'lit': 2.5, 'fire': 2.4, 'epic': 2.8,
+        'legendary': 2.9, 'goat': 2.7, 'clutch': 2.5, 'beast': 2.3, 'killer': 2.2,
+        'crushing': 2.3, 'smashing': 2.4, 'nailing': 2.3, 'rocking': 2.2, 'slaying': 2.4,
+        // Work & productivity
+        'efficient': 2.3, 'effective': 2.4, 'organized': 2.2, 'prepared': 2.1, 'ready': 1.9,
+        'focused': 2.2, 'dedicated': 2.4, 'committed': 2.3, 'driven': 2.4, 'ambitious': 2.3,
+        'innovative': 2.5, 'creative': 2.4, 'imaginative': 2.3, 'resourceful': 2.4, 'clever': 2.3,
+        'smart': 2.2, 'intelligent': 2.3, 'wise': 2.4, 'knowledgeable': 2.2, 'skilled': 2.3,
+        'talented': 2.5, 'gifted': 2.6, 'capable': 2.2, 'competent': 2.1, 'proficient': 2.2,
+        // Health & wellness
+        'healthy': 2.3, 'fit': 2.2, 'strong': 2.2, 'energetic': 2.4, 'vital': 2.3,
+        'rested': 2.2, 'restored': 2.4, 'healed': 2.5, 'recovered': 2.4, 'better': 2.1,
+        'balanced': 2.2, 'centered': 2.3, 'grounded': 2.2, 'mindful': 2.3, 'present': 2.0,
+        'serene': 2.5, 'tranquil': 2.4, 'harmonious': 2.5, 'zen': 2.3, 'meditative': 2.2
+      },
+
+      negative: {
+        // Basic negative
+        'bad': -2.1, 'terrible': -3.2, 'awful': -3.1, 'horrible': -3.3, 'worst': -3.4,
+        'hate': -3.2, 'hated': -3.2, 'hating': -3.0, 'angry': -2.8, 'anger': -2.7,
+        'sad': -2.5, 'sadness': -2.6, 'depressed': -3.1, 'depression': -3.0,
+        'frustrated': -2.6, 'frustrating': -2.7, 'annoyed': -2.3, 'annoying': -2.4,
+        'stressed': -2.5, 'stress': -2.4, 'stressful': -2.6, 'anxious': -2.4,
+        'worried': -2.2, 'worry': -2.1, 'fear': -2.5, 'scared': -2.3, 'afraid': -2.3,
+        'tired': -1.8, 'exhausted': -2.5, 'boring': -2.1, 'bored': -2.0,
+        'disappointed': -2.6, 'disappointing': -2.7, 'upset': -2.4, 'unhappy': -2.5,
+        'miserable': -3.0, 'painful': -2.7, 'pain': -2.4, 'hurt': -2.3, 'hurting': -2.4,
+        'difficult': -1.8, 'hard': -1.5, 'tough': -1.6, 'rough': -1.8, 'struggle': -2.0,
+        'fail': -2.4, 'failed': -2.5, 'failure': -2.7, 'lose': -2.2, 'lost': -2.3,
+        'problem': -1.9, 'problems': -2.0, 'issue': -1.6, 'issues': -1.7,
+        'wrong': -2.0, 'mistake': -2.1, 'mistakes': -2.2, 'error': -1.8,
+        'stupid': -2.6, 'dumb': -2.4, 'ugly': -2.5, 'mean': -2.3, 'rude': -2.4,
+        'sick': -2.0, 'ill': -1.9, 'disease': -2.3, 'cry': -2.1, 'cried': -2.2,
+        'lonely': -2.4, 'alone': -1.8, 'helpless': -2.6, 'hopeless': -3.0,
+        'disaster': -3.1, 'catastrophe': -3.6, 'crisis': -2.6, 'emergency': -2.3,
+        'fight': -2.0, 'fighting': -2.1, 'conflict': -2.2, 'argument': -2.1,
+        // Emotions & feelings
+        'devastated': -3.4, 'heartbroken': -3.3, 'crushed': -3.1, 'shattered': -3.2, 'broken': -2.8,
+        'anguish': -3.2, 'agony': -3.3, 'torment': -3.1, 'suffering': -3.0, 'grief': -3.0,
+        'despair': -3.3, 'despairing': -3.2, 'gloomy': -2.4, 'melancholy': -2.5, 'somber': -2.2,
+        'bitter': -2.4, 'resentful': -2.6, 'jealous': -2.3, 'envious': -2.2, 'spiteful': -2.7,
+        'furious': -3.2, 'enraged': -3.3, 'livid': -3.1, 'outraged': -3.0, 'irate': -2.9,
+        'irritated': -2.2, 'aggravated': -2.4, 'agitated': -2.3, 'bothered': -1.9, 'disturbed': -2.3,
+        'terrified': -3.1, 'horrified': -3.2, 'petrified': -3.0, 'panicked': -2.8, 'paranoid': -2.5,
+        'nervous': -2.0, 'tense': -2.1, 'uneasy': -2.0, 'uncomfortable': -1.9, 'restless': -1.8,
+        'insecure': -2.3, 'doubtful': -2.0, 'uncertain': -1.8, 'confused': -1.9, 'lost': -2.1,
+        'overwhelmed': -2.6, 'overloaded': -2.3, 'swamped': -2.2, 'drowning': -2.8, 'suffocating': -2.9,
+        // Social & relationships
+        'rejected': -2.8, 'abandoned': -3.0, 'betrayed': -3.2, 'deceived': -2.9, 'lied': -2.6,
+        'ignored': -2.4, 'neglected': -2.6, 'forgotten': -2.3, 'excluded': -2.5, 'isolated': -2.6,
+        'humiliated': -3.1, 'embarrassed': -2.4, 'ashamed': -2.7, 'guilty': -2.5, 'regret': -2.4,
+        'regretful': -2.5, 'remorseful': -2.4, 'sorry': -1.8, 'apologize': -1.6, 'apologizing': -1.6,
+        'disrespected': -2.6, 'insulted': -2.7, 'offended': -2.4, 'attacked': -2.8, 'criticized': -2.3,
+        'blamed': -2.4, 'accused': -2.5, 'judged': -2.2, 'mocked': -2.6, 'ridiculed': -2.7,
+        'bullied': -3.0, 'harassed': -3.1, 'threatened': -2.9, 'intimidated': -2.7, 'pressured': -2.3,
+        'manipulated': -2.8, 'controlled': -2.5, 'trapped': -2.7, 'stuck': -2.1, 'cornered': -2.4,
+        // Actions & experiences
+        'failing': -2.5, 'struggling': -2.1, 'suffering': -2.8, 'losing': -2.3, 'falling': -2.0,
+        'crashing': -2.6, 'collapsing': -2.7, 'breaking': -2.3, 'destroying': -2.8, 'ruining': -2.7,
+        'wasting': -2.2, 'losing': -2.2, 'missing': -1.9, 'forgetting': -1.8, 'neglecting': -2.3,
+        'avoiding': -1.7, 'procrastinating': -2.0, 'delaying': -1.6, 'quitting': -2.2, 'giving up': -2.5,
+        'complained': -1.9, 'complaining': -2.0, 'whining': -2.2, 'nagging': -2.1, 'yelling': -2.4,
+        'screaming': -2.5, 'shouting': -2.3, 'arguing': -2.2, 'bickering': -2.0, 'quarreling': -2.2,
+        // Descriptive negatives
+        'dark': -1.8, 'gloomy': -2.2, 'dreary': -2.1, 'bleak': -2.4, 'dismal': -2.5,
+        'dull': -1.8, 'lifeless': -2.3, 'empty': -2.2, 'hollow': -2.3, 'void': -2.4,
+        'cold': -1.6, 'harsh': -2.2, 'bitter': -2.3, 'cruel': -2.8, 'brutal': -2.9,
+        'disgusting': -3.0, 'gross': -2.4, 'nasty': -2.6, 'vile': -3.0, 'repulsive': -3.1,
+        'creepy': -2.3, 'weird': -1.6, 'strange': -1.4, 'odd': -1.3, 'disturbing': -2.5,
+        // Casual/slang negatives
+        'sucks': -2.4, 'sucked': -2.5, 'stinks': -2.2, 'blows': -2.3, 'lame': -2.0,
+        'crappy': -2.4, 'crap': -2.2, 'trash': -2.3, 'garbage': -2.4, 'junk': -2.0,
+        'pathetic': -2.7, 'ridiculous': -2.3, 'absurd': -2.2, 'insane': -2.0, 'crazy': -1.6,
+        'annoying': -2.3, 'obnoxious': -2.6, 'unbearable': -2.8, 'intolerable': -2.9, 'insufferable': -3.0,
+        'ugh': -1.8, 'meh': -1.2, 'blah': -1.4, 'whatever': -1.3, 'nevermind': -1.2,
+        // Work & productivity
+        'unproductive': -2.1, 'inefficient': -2.0, 'disorganized': -2.0, 'unprepared': -2.1, 'behind': -1.8,
+        'overworked': -2.4, 'underpaid': -2.2, 'undervalued': -2.5, 'unappreciated': -2.6, 'overlooked': -2.3,
+        'demoted': -2.7, 'fired': -3.0, 'laid off': -2.8, 'unemployed': -2.5, 'jobless': -2.4,
+        'deadlines': -1.8, 'pressure': -2.0, 'demands': -1.8, 'expectations': -1.5, 'obligations': -1.6,
+        'meetings': -1.3, 'emails': -1.2, 'traffic': -1.8, 'commute': -1.6, 'overtime': -1.9,
+        // Health & wellness
+        'unhealthy': -2.2, 'unfit': -1.9, 'weak': -2.0, 'fragile': -1.8, 'vulnerable': -1.9,
+        'aching': -2.1, 'sore': -1.9, 'stiff': -1.6, 'cramped': -1.8, 'injured': -2.4,
+        'nauseous': -2.2, 'dizzy': -1.9, 'faint': -2.1, 'headache': -2.0, 'migraine': -2.5,
+        'insomnia': -2.4, 'sleepless': -2.2, 'restless': -2.0, 'fatigued': -2.3, 'drained': -2.4,
+        'burned out': -2.8, 'burnout': -2.7, 'breakdown': -3.0, 'snapped': -2.6, 'cracked': -2.4
+      },
+
+      intensifiers: {
+        'very': 1.5, 'really': 1.4, 'extremely': 1.8, 'absolutely': 1.7,
+        'incredibly': 1.7, 'so': 1.3, 'super': 1.5, 'totally': 1.4,
+        'completely': 1.5, 'utterly': 1.6, 'highly': 1.4, 'quite': 1.2,
+        'pretty': 1.2, 'somewhat': 0.8, 'rather': 1.1, 'especially': 1.4
+      },
+
+      negations: ['not', "n't", 'never', 'no', 'none', 'nobody', 'nothing',
+                  'neither', 'nowhere', 'hardly', 'barely', 'scarcely', "wasn't",
+                  "weren't", "isn't", "aren't", "don't", "doesn't", "didn't",
+                  "won't", "wouldn't", "couldn't", "shouldn't", "can't", "cannot"],
+
+      analyze(text) {
+        const words = text.toLowerCase().replace(/[^\w\s']/g, '').split(/\s+/).filter(w => w);
+        let score = 0;
+        let positiveCount = 0;
+        let negativeCount = 0;
+        let positiveWords = [];
+        let negativeWords = [];
+
+        for (let i = 0; i < words.length; i++) {
+          const word = words[i];
+          let wordScore = 0;
+
+          if (this.positive[word]) {
+            wordScore = this.positive[word];
+          } else if (this.negative[word]) {
+            wordScore = this.negative[word];
+          }
+
+          if (wordScore !== 0) {
+            let intensifier = 1;
+            for (let j = Math.max(0, i - 2); j < i; j++) {
+              if (this.intensifiers[words[j]]) {
+                intensifier = Math.max(intensifier, this.intensifiers[words[j]]);
+              }
+            }
+
+            let negated = false;
+            for (let j = Math.max(0, i - 3); j < i; j++) {
+              if (this.negations.includes(words[j])) {
+                negated = true;
+                break;
+              }
+            }
+
+            wordScore *= intensifier;
+            if (negated) {
+              wordScore *= -0.5;
+            }
+
+            score += wordScore;
+
+            if (wordScore > 0) {
+              positiveCount++;
+              positiveWords.push(word);
+            } else if (wordScore < 0) {
+              negativeCount++;
+              negativeWords.push(word);
+            }
+          }
+        }
+
+        const normalizedScore = score / (Math.abs(score) + 5);
+
+        return {
+          score: normalizedScore,
+          rawScore: score,
+          positiveCount,
+          negativeCount,
+          positiveWords: [...new Set(positiveWords)],
+          negativeWords: [...new Set(negativeWords)],
+          totalWords: words.length,
+          isDelight: normalizedScore > 0.05,
+          isFight: normalizedScore < -0.05,
+          isNeutral: normalizedScore >= -0.05 && normalizedScore <= 0.05
+        };
+      }
+    };
+
+    // Educational dropdown component
+    function EducationalDropdown() {
+      const [isOpen, setIsOpen] = useState(false);
+
+      return (
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden mb-6">
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <InfoIcon className="w-5 h-5 text-purple-300" />
+              <span className="text-purple-200 font-medium">Why Does Positive Communication Matter?</span>
+            </div>
+            {isOpen ? (
+              <ChevronUpIcon className="w-5 h-5 text-purple-300" />
+            ) : (
+              <ChevronDownIcon className="w-5 h-5 text-purple-300" />
+            )}
+          </button>
+
+          {isOpen && (
+            <div className="px-6 pb-6 space-y-4 text-sm">
+              <div className="bg-emerald-500/10 rounded-xl p-4 border border-emerald-500/20">
+                <h3 className="text-emerald-300 font-semibold mb-2 flex items-center gap-2">
+                  <PartyIcon className="w-4 h-4" />
+                  Positive Communication
+                </h3>
+                <ul className="text-emerald-200/80 space-y-2">
+                  <li>• <strong>Builds trust and connection</strong> - Using appreciative language strengthens relationships</li>
+                  <li>• <strong>Improves mental health</strong> - Focusing on positives releases dopamine and reduces cortisol</li>
+                  <li>• <strong>Enhances problem-solving</strong> - Positive framing opens creative thinking pathways</li>
+                  <li>• <strong>Creates upward spirals</strong> - Good feelings lead to more positive interactions</li>
+                </ul>
+              </div>
+
+              <div className="bg-red-500/10 rounded-xl p-4 border border-red-500/20">
+                <h3 className="text-red-300 font-semibold mb-2 flex items-center gap-2">
+                  <FrownIcon className="w-4 h-4" />
+                  Negative Communication
+                </h3>
+                <ul className="text-red-200/80 space-y-2">
+                  <li>• <strong>Triggers stress responses</strong> - Negative words activate the amygdala (fight-or-flight)</li>
+                  <li>• <strong>Damages relationships</strong> - Criticism and complaints erode trust over time</li>
+                  <li>• <strong>Becomes self-fulfilling</strong> - Negative focus makes us notice more negatives</li>
+                  <li>• <strong>Affects physical health</strong> - Chronic negativity raises blood pressure and weakens immunity</li>
+                </ul>
+              </div>
+
+              <div className="bg-purple-500/10 rounded-xl p-4 border border-purple-500/20">
+                <h3 className="text-purple-300 font-semibold mb-2">The 5:1 Ratio</h3>
+                <p className="text-purple-200/80">
+                  Research by Dr. John Gottman shows that healthy relationships maintain a ratio of at least
+                  <strong> 5 positive interactions for every 1 negative</strong>. This "magic ratio" predicts
+                  relationship success with over 90% accuracy. The same principle applies to self-talk!
+                </p>
+              </div>
+
+              <div className="bg-indigo-500/10 rounded-xl p-4 border border-indigo-500/20">
+                <h3 className="text-indigo-300 font-semibold mb-2">Tips for More Positive Days</h3>
+                <ul className="text-indigo-200/80 space-y-1">
+                  <li>• Start your day by naming 3 things you're grateful for</li>
+                  <li>• Reframe challenges as "opportunities to learn"</li>
+                  <li>• Celebrate small wins throughout the day</li>
+                  <li>• End conversations with something positive</li>
+                  <li>• Practice "yes, and..." instead of "yes, but..."</li>
+                </ul>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // Journal Component
+    function JournalSection({ analysisResult, dayDescription }) {
+      const [journalEntries, setJournalEntries] = useState(() => {
+        const saved = localStorage.getItem('fightOrDelightJournal');
+        return saved ? JSON.parse(saved) : [];
+      });
+      const [reflection, setReflection] = useState('');
+      const [improvements, setImprovements] = useState('');
+      const [gratitude, setGratitude] = useState('');
+      const [showPastEntries, setShowPastEntries] = useState(false);
+      const [saveMessage, setSaveMessage] = useState('');
+
+      const saveEntry = () => {
+        if (!reflection.trim() && !improvements.trim() && !gratitude.trim()) {
+          setSaveMessage('Please write something before saving!');
+          setTimeout(() => setSaveMessage(''), 3000);
+          return;
+        }
+
+        const newEntry = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          }),
+          timestamp: new Date().toISOString(),
+          dayDescription: dayDescription || '',
+          score: analysisResult?.score || 0,
+          result: analysisResult?.isDelight ? 'Delight' : analysisResult?.isFight ? 'Fight' : 'Neutral',
+          reflection,
+          improvements,
+          gratitude
+        };
+
+        const updatedEntries = [newEntry, ...journalEntries].slice(0, 30); // Keep last 30 entries
+        setJournalEntries(updatedEntries);
+        localStorage.setItem('fightOrDelightJournal', JSON.stringify(updatedEntries));
+
+        setReflection('');
+        setImprovements('');
+        setGratitude('');
+        setSaveMessage('Entry saved successfully!');
+        setTimeout(() => setSaveMessage(''), 3000);
+      };
+
+      const deleteEntry = (id) => {
+        const updatedEntries = journalEntries.filter(entry => entry.id !== id);
+        setJournalEntries(updatedEntries);
+        localStorage.setItem('fightOrDelightJournal', JSON.stringify(updatedEntries));
+      };
+
+      return (
+        <div className="mt-8 space-y-6">
+          {/* Journal Entry Form */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <BookIcon className="w-6 h-6 text-purple-300" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-white">Daily Journal</h2>
+                <p className="text-purple-200/60 text-sm">Reflect on your day and plan for tomorrow</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Reflection */}
+              <div>
+                <label className="block text-purple-200 text-sm font-medium mb-2">
+                  How do you feel about today? What stood out?
+                </label>
+                <textarea
+                  value={reflection}
+                  onChange={(e) => setReflection(e.target.value)}
+                  placeholder="Today I felt... The best part was... I struggled with..."
+                  className="w-full bg-black/20 rounded-xl p-4 min-h-[100px] border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                />
+              </div>
+
+              {/* Improvements */}
+              <div>
+                <label className="block text-purple-200 text-sm font-medium mb-2">
+                  What could you do differently tomorrow?
+                </label>
+                <textarea
+                  value={improvements}
+                  onChange={(e) => setImprovements(e.target.value)}
+                  placeholder="Tomorrow I will... I want to improve... I'll try to..."
+                  className="w-full bg-black/20 rounded-xl p-4 min-h-[80px] border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                />
+              </div>
+
+              {/* Gratitude */}
+              <div>
+                <label className="block text-purple-200 text-sm font-medium mb-2">
+                  Three things you're grateful for today
+                </label>
+                <textarea
+                  value={gratitude}
+                  onChange={(e) => setGratitude(e.target.value)}
+                  placeholder="1. I'm grateful for...&#10;2. I appreciate...&#10;3. I'm thankful for..."
+                  className="w-full bg-black/20 rounded-xl p-4 min-h-[80px] border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                />
+              </div>
+
+              {/* Save button and message */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={saveEntry}
+                  className="flex-1 py-3 px-6 rounded-xl font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 shadow-lg hover:shadow-purple-500/50 transition-all duration-300 flex items-center justify-center gap-2"
+                >
+                  <SaveIcon className="w-5 h-5" />
+                  Save Journal Entry
+                </button>
+              </div>
+              {saveMessage && (
+                <p className={`text-center text-sm ${saveMessage.includes('success') ? 'text-emerald-300' : 'text-amber-300'}`}>
+                  {saveMessage}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Past Entries Toggle */}
+          {journalEntries.length > 0 && (
+            <div className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 overflow-hidden">
+              <button
+                onClick={() => setShowPastEntries(!showPastEntries)}
+                className="w-full px-6 py-4 flex items-center justify-between text-left hover:bg-white/5 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <CalendarIcon className="w-5 h-5 text-purple-300" />
+                  <span className="text-purple-200 font-medium">Past Journal Entries ({journalEntries.length})</span>
+                </div>
+                {showPastEntries ? (
+                  <ChevronUpIcon className="w-5 h-5 text-purple-300" />
+                ) : (
+                  <ChevronDownIcon className="w-5 h-5 text-purple-300" />
+                )}
+              </button>
+
+              {showPastEntries && (
+                <div className="px-6 pb-6 space-y-4 max-h-[500px] overflow-y-auto">
+                  {journalEntries.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className={`rounded-xl p-4 border ${
+                        entry.result === 'Delight'
+                          ? 'bg-emerald-500/10 border-emerald-500/20'
+                          : entry.result === 'Fight'
+                          ? 'bg-red-500/10 border-red-500/20'
+                          : 'bg-gray-500/10 border-gray-500/20'
+                      }`}
+                    >
+                      <div className="flex justify-between items-start mb-3">
+                        <div>
+                          <p className="text-white/80 font-medium text-sm">{entry.date}</p>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${
+                            entry.result === 'Delight'
+                              ? 'bg-emerald-500/30 text-emerald-300'
+                              : entry.result === 'Fight'
+                              ? 'bg-red-500/30 text-red-300'
+                              : 'bg-gray-500/30 text-gray-300'
+                          }`}>
+                            {entry.result} ({(entry.score * 100).toFixed(0)}%)
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => deleteEntry(entry.id)}
+                          className="text-white/30 hover:text-red-400 transition-colors p-1"
+                          title="Delete entry"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      {entry.dayDescription && (
+                        <div className="mb-2">
+                          <p className="text-purple-300/60 text-xs uppercase tracking-wide">What I said</p>
+                          <p className="text-white/60 text-sm line-clamp-2">{entry.dayDescription}</p>
+                        </div>
+                      )}
+
+                      {entry.reflection && (
+                        <div className="mb-2">
+                          <p className="text-purple-300/60 text-xs uppercase tracking-wide">Reflection</p>
+                          <p className="text-white/70 text-sm">{entry.reflection}</p>
+                        </div>
+                      )}
+
+                      {entry.improvements && (
+                        <div className="mb-2">
+                          <p className="text-purple-300/60 text-xs uppercase tracking-wide">Tomorrow's Goals</p>
+                          <p className="text-white/70 text-sm">{entry.improvements}</p>
+                        </div>
+                      )}
+
+                      {entry.gratitude && (
+                        <div>
+                          <p className="text-purple-300/60 text-xs uppercase tracking-wide">Gratitude</p>
+                          <p className="text-white/70 text-sm">{entry.gratitude}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function App() {
+      const [isRecording, setIsRecording] = useState(false);
+      const [transcript, setTranscript] = useState('');
+      const [interimTranscript, setInterimTranscript] = useState('');
+      const [result, setResult] = useState(null);
+      const [error, setError] = useState(null);
+      const [showResult, setShowResult] = useState(false);
+      const [inputMode, setInputMode] = useState('voice'); // 'voice' or 'text'
+      const recognitionRef = useRef(null);
+      const isRecordingRef = useRef(false);
+      const finalTranscriptRef = useRef('');
+
+      useEffect(() => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          setInputMode('text'); // Auto-switch to text if speech not supported
+          return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = true;
+        recognitionRef.current.interimResults = true;
+        recognitionRef.current.lang = 'en-US';
+
+        recognitionRef.current.onresult = (event) => {
+          let interim = '';
+          let finalText = '';
+
+          // Process all results from the beginning
+          for (let i = 0; i < event.results.length; i++) {
+            const result = event.results[i];
+            if (result.isFinal) {
+              finalText += result[0].transcript + ' ';
+            } else {
+              interim += result[0].transcript;
+            }
+          }
+
+          // Only update if we have new final text
+          if (finalText && finalText !== finalTranscriptRef.current) {
+            finalTranscriptRef.current = finalText;
+            setTranscript(finalText);
+          }
+          setInterimTranscript(interim);
+        };
+
+        recognitionRef.current.onerror = (event) => {
+          console.error('Speech recognition error:', event.error);
+          if (event.error === 'not-allowed') {
+            setError('Microphone access denied. Please allow microphone access or use text input.');
+          }
+          setIsRecording(false);
+          isRecordingRef.current = false;
+        };
+
+        recognitionRef.current.onend = () => {
+          if (isRecordingRef.current) {
+            try {
+              recognitionRef.current.start();
+            } catch (e) {
+              console.log('Recognition restart failed:', e);
+            }
+          }
+        };
+
+        return () => {
+          if (recognitionRef.current) {
+            recognitionRef.current.stop();
+          }
+        };
+      }, []);
+
+      const toggleRecording = () => {
+        if (isRecording) {
+          recognitionRef.current.stop();
+          setIsRecording(false);
+          isRecordingRef.current = false;
+        } else {
+          setTranscript('');
+          setInterimTranscript('');
+          finalTranscriptRef.current = '';
+          setResult(null);
+          setShowResult(false);
+          setError(null);
+          try {
+            recognitionRef.current.start();
+            setIsRecording(true);
+            isRecordingRef.current = true;
+          } catch (e) {
+            console.error('Failed to start recognition:', e);
+          }
+        }
+      };
+
+      const analyzeDay = () => {
+        if (transcript.trim()) {
+          const analysis = sentimentAnalyzer.analyze(transcript);
+          setResult(analysis);
+          setShowResult(true);
+        }
+      };
+
+      const resetAll = () => {
+        setTranscript('');
+        setInterimTranscript('');
+        finalTranscriptRef.current = '';
+        setResult(null);
+        setShowResult(false);
+        setIsRecording(false);
+        isRecordingRef.current = false;
+        if (recognitionRef.current) {
+          recognitionRef.current.stop();
+        }
+      };
+
+      const switchToText = () => {
+        if (isRecording) {
+          recognitionRef.current.stop();
+          setIsRecording(false);
+          isRecordingRef.current = false;
+        }
+        setInputMode('text');
+      };
+
+      const switchToVoice = () => {
+        if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+          setError('Your browser does not support voice input. Please use text input instead.');
+          return;
+        }
+        setInputMode('voice');
+        setError(null);
+      };
+
+      const speechSupported = ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+
+      return (
+        <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 flex flex-col items-center p-4 py-8 font-sans">
+          {/* Decorative background elements */}
+          <div className="fixed inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-20 left-20 w-64 h-64 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float"></div>
+            <div className="absolute bottom-20 right-20 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float" style={{animationDelay: '1s'}}></div>
+            <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 float" style={{animationDelay: '2s'}}></div>
+          </div>
+
+          {/* Main content */}
+          <div className="relative z-10 max-w-2xl w-full">
+            {/* Title */}
+            <div className="text-center mb-6">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold mb-2 leading-tight" style={{background: 'linear-gradient(to right, #f9a8d4, #c4b5fd, #a5b4fc)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', paddingBottom: '0.1em'}}>
+                Fight or Delight
+              </h1>
+              <p className="text-purple-200/70 text-base sm:text-lg">Tell me about your day, and I'll tell you how it went</p>
+            </div>
+
+            {/* Educational dropdown */}
+            <EducationalDropdown />
+
+            {/* Error message */}
+            {error && (
+              <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 mb-6 text-red-200 text-center">
+                {error}
+              </div>
+            )}
+
+            {/* Recording card */}
+            <div className="bg-white/10 backdrop-blur-lg rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20">
+              {/* Input mode toggle */}
+              <div className="flex justify-center mb-6">
+                <div className="bg-black/20 rounded-full p-1 flex gap-1">
+                  <button
+                    onClick={switchToVoice}
+                    disabled={!speechSupported}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                      inputMode === 'voice'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'text-purple-200/70 hover:text-white'
+                    } ${!speechSupported ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  >
+                    <MicIcon className="w-4 h-4" />
+                    Voice
+                  </button>
+                  <button
+                    onClick={switchToText}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${
+                      inputMode === 'text'
+                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                        : 'text-purple-200/70 hover:text-white'
+                    }`}
+                  >
+                    <KeyboardIcon className="w-4 h-4" />
+                    Type
+                  </button>
+                </div>
+              </div>
+
+              {/* Voice input mode */}
+              {inputMode === 'voice' && (
+                <>
+                  <div className="flex flex-col items-center mb-6">
+                    <button
+                      onClick={toggleRecording}
+                      disabled={!!error}
+                      className={`relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300 transform hover:scale-105 ${
+                        isRecording
+                          ? 'bg-gradient-to-br from-red-500 to-pink-600 shadow-lg shadow-red-500/50'
+                          : 'bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-purple-500/50 hover:shadow-purple-500/70'
+                      } ${error ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {isRecording && (
+                        <>
+                          <div className="absolute inset-0 rounded-full bg-red-400 pulse-ring"></div>
+                          <div className="absolute inset-0 rounded-full bg-red-400 pulse-ring" style={{animationDelay: '0.5s'}}></div>
+                        </>
+                      )}
+                      {isRecording ? (
+                        <MicOffIcon className="w-10 h-10 text-white relative z-10" />
+                      ) : (
+                        <MicIcon className="w-10 h-10 text-white relative z-10" />
+                      )}
+                    </button>
+                    <p className="mt-4 text-purple-200 text-sm">
+                      {isRecording ? 'Tap to stop recording' : 'Tap to start recording'}
+                    </p>
+
+                    {/* Audio wave visualization */}
+                    {isRecording && (
+                      <div className="flex items-center gap-1 mt-4 h-8">
+                        {[...Array(5)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-1 bg-gradient-to-t from-pink-500 to-purple-400 rounded-full wave-bar"
+                            style={{ height: '100%', animationDelay: `${i * 0.1}s` }}
+                          ></div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Transcript display */}
+                  <div className="relative">
+                    <div className="flex items-center gap-2 mb-2">
+                      <VolumeIcon className="w-4 h-4 text-purple-300" />
+                      <span className="text-purple-300 text-sm font-medium">Transcript</span>
+                    </div>
+                    <div className="bg-black/20 rounded-xl p-4 min-h-[120px] max-h-[200px] overflow-y-auto border border-white/10">
+                      {transcript || interimTranscript ? (
+                        <p className="text-white/90 leading-relaxed">
+                          {transcript}
+                          <span className="text-purple-300/60">{interimTranscript}</span>
+                        </p>
+                      ) : (
+                        <p className="text-white/30 italic">Your transcript will appear here...</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Text input mode */}
+              {inputMode === 'text' && (
+                <div className="relative">
+                  <div className="flex items-center gap-2 mb-2">
+                    <KeyboardIcon className="w-4 h-4 text-purple-300" />
+                    <span className="text-purple-300 text-sm font-medium">Type about your day</span>
+                  </div>
+                  <textarea
+                    value={transcript}
+                    onChange={(e) => setTranscript(e.target.value)}
+                    placeholder="How was your day? Tell me about the good, the bad, and everything in between..."
+                    className="w-full bg-black/20 rounded-xl p-4 min-h-[150px] max-h-[300px] border border-white/10 text-white/90 placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                  />
+                  <p className="text-right text-purple-200/50 text-xs mt-1">
+                    {transcript.trim().split(/\s+/).filter(w => w).length} words
+                  </p>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-4 mt-6">
+                <button
+                  onClick={analyzeDay}
+                  disabled={!transcript.trim() || isRecording}
+                  className={`flex-1 py-4 px-6 rounded-xl font-semibold text-white flex items-center justify-center gap-2 transition-all duration-300 ${
+                    transcript.trim() && !isRecording
+                      ? 'bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 shadow-lg hover:shadow-purple-500/50 transform hover:scale-[1.02]'
+                      : 'bg-gray-500/30 cursor-not-allowed'
+                  }`}
+                >
+                  <SparklesIcon className="w-5 h-5" />
+                  Analyze My Day
+                </button>
+                <button
+                  onClick={resetAll}
+                  className="py-4 px-6 rounded-xl font-semibold text-purple-200 bg-white/10 hover:bg-white/20 transition-all duration-300 flex items-center justify-center gap-2 border border-white/20"
+                >
+                  <RotateCcwIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Results card */}
+            {showResult && result && (
+              <div className={`mt-8 rounded-3xl p-6 sm:p-8 shadow-2xl border bounce-in ${
+                result.isDelight
+                  ? 'bg-gradient-to-br from-emerald-500/20 to-teal-600/20 border-emerald-500/30'
+                  : result.isFight
+                  ? 'bg-gradient-to-br from-red-500/20 to-orange-600/20 border-red-500/30'
+                  : 'bg-gradient-to-br from-gray-500/20 to-slate-600/20 border-gray-500/30'
+              }`}>
+                {/* Result header */}
+                <div className="text-center mb-6">
+                  <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full mb-4 ${
+                    result.isDelight
+                      ? 'bg-gradient-to-br from-emerald-400 to-teal-500'
+                      : result.isFight
+                      ? 'bg-gradient-to-br from-red-400 to-orange-500'
+                      : 'bg-gradient-to-br from-gray-400 to-slate-500'
+                  }`}>
+                    {result.isDelight ? (
+                      <PartyIcon className="w-10 h-10 text-white" />
+                    ) : result.isFight ? (
+                      <FrownIcon className="w-10 h-10 text-white" />
+                    ) : (
+                      <span className="text-3xl">😐</span>
+                    )}
+                  </div>
+                  <h2 className={`text-4xl font-bold ${
+                    result.isDelight
+                      ? 'text-emerald-300'
+                      : result.isFight
+                      ? 'text-red-300'
+                      : 'text-gray-300'
+                  }`}>
+                    {result.isDelight ? 'A Delight!' : result.isFight ? 'A Fight!' : 'Neutral'}
+                  </h2>
+                  <p className="text-white/60 mt-2">
+                    {result.isDelight
+                      ? 'Sounds like you had a wonderful day!'
+                      : result.isFight
+                      ? 'Seems like today was a tough one. Tomorrow will be better!'
+                      : 'A balanced day with ups and downs.'}
+                  </p>
+                </div>
+
+                {/* Score meter */}
+                <div className="mb-6">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-red-300">Fight</span>
+                    <span className="text-gray-300">Neutral</span>
+                    <span className="text-emerald-300">Delight</span>
+                  </div>
+                  <div className="h-4 bg-black/30 rounded-full overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-red-500 via-gray-400 to-emerald-500 opacity-30"></div>
+                    <div
+                      className="absolute top-0 bottom-0 w-3 bg-white rounded-full shadow-lg transform -translate-x-1/2 transition-all duration-500"
+                      style={{ left: `${(result.score + 1) * 50}%` }}
+                    ></div>
+                  </div>
+                  <p className="text-center mt-2 text-white/70 text-sm">
+                    Score: {(result.score * 100).toFixed(1)}%
+                  </p>
+                </div>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-emerald-500/20 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-emerald-300">{result.positiveCount}</p>
+                    <p className="text-emerald-200/70 text-sm">Positive words</p>
+                    {result.positiveWords.length > 0 && (
+                      <p className="text-emerald-200/50 text-xs mt-1 truncate">
+                        {result.positiveWords.slice(0, 5).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                  <div className="bg-red-500/20 rounded-xl p-4 text-center">
+                    <p className="text-3xl font-bold text-red-300">{result.negativeCount}</p>
+                    <p className="text-red-200/70 text-sm">Negative words</p>
+                    {result.negativeWords.length > 0 && (
+                      <p className="text-red-200/50 text-xs mt-1 truncate">
+                        {result.negativeWords.slice(0, 5).join(', ')}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Total words */}
+                <p className="text-center mt-4 text-white/50 text-sm">
+                  Analyzed {result.totalWords} words
+                </p>
+              </div>
+            )}
+
+            {/* Journal Section - appears after analysis */}
+            {showResult && result && (
+              <JournalSection analysisResult={result} dayDescription={transcript} />
+            )}
+
+            {/* Footer */}
+            <p className="text-center text-purple-200/40 text-sm mt-8 pb-4">
+              Powered by Web Speech API & VADER-style sentiment analysis
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
