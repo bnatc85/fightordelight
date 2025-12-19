@@ -103,7 +103,7 @@ NEGATIVE_WORDS = {
     'sick': -2.0, 'ill': -1.9, 'disease': -2.3, 'cry': -2.1, 'cried': -2.2,
     'lonely': -2.4, 'alone': -1.8, 'helpless': -2.6, 'hopeless': -3.0,
     'disaster': -3.1, 'catastrophe': -3.6, 'crisis': -2.6, 'emergency': -2.3,
-    'fight': -2.0, 'fighting': -2.1, 'conflict': -2.2, 'argument': -2.1,
+    'fight': -2.0, 'fighting': -2.1, 'conflict': -2.2, 'argument': -2.1, 'sus': -1.5,
     'devastated': -3.4, 'heartbroken': -3.3, 'crushed': -3.1, 'shattered': -3.2, 'broken': -2.8,
     'furious': -3.2, 'enraged': -3.3, 'livid': -3.1, 'outraged': -3.0, 'irate': -2.9,
     'terrified': -3.1, 'horrified': -3.2, 'petrified': -3.0, 'panicked': -2.8, 'paranoid': -2.5,
